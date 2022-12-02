@@ -1,5 +1,32 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block body %}
-    TODO
+    {% block script %}
+    <script type="module" src="{% static 'network/main.js' %}"></script>
+    {% endblock %}
+    <h1 id="page-title"></h1>
+    <div id="new-post">
+        {% if request.user.is_authenticated %}        
+            <form id="new-post-form">
+                {% csrf_token %}
+                <label for="new-post-content">New Post</label>
+                <textarea id="new-post-content" class="form-control m-1"></textarea>
+                <input id="new-post-submit" type="submit" class="btn btn-primary" value="Post" />
+            </form>
+        {% endif %}
+    </div>
+    {% for post in posts %}
+        <div>
+            <img src="{{ post.user.img_profile }}">
+            <div>
+                <a href="{% url 'profile_page' post.user.username %}"><h5 id="{{ post.user.username }}">{{ post.user.username }}</h5></a>
+                <p>{{ post.content }}</p>
+            </div>
+            <div>
+                <p>{{ post.timestamp }}</p>
+                <p><button id="heart-icon-{{ post.id }}">&#10084;</button>{{ post.like }}</p>
+            </div>
+        </div>
+    {% endfor %}
 {% endblock %}

@@ -1,0 +1,37 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+    {% block script %}
+    <script type="module" src="{% static 'network/main.js' %}"></script>
+    {% endblock %}
+    <div id="profile-{{ user.id }}">
+        <img src="{{ user.img_profile }}" />
+        <p>{{ user.username }}</p>
+        <div>
+            <div>Total posts: {{ total_posts }}</div>
+            <div>Since: {{ user.date_joined }}</div>
+            <div>
+                <p>Total followers: {{ total_followers }}</p>
+                {% if user.is_authenticated  and user.username != request.user %} 
+                    <button id="follow-button-{{ user.username }}">{{ statement }}</button>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            {% for post in posts %}
+                <div>
+                    <img src="{{ post.user.img_profile }}">
+                    <div>
+                        <a href="{% url 'profile_page' post.user.username %}"><h5 id="{{ post.user.username }}">{{ post.user.username }}</h5></a>
+                        <p>{{ post.content }}</p>
+                    </div>
+                    <div>
+                        <p>{{ post.timestamp }}</p>
+                        <p><button id="heart-icon-{{ post.id }}">&#10084;</button>{{ post.like }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
