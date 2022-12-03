@@ -3,17 +3,15 @@ from django.db import models
 
 from django_countries.fields import CountryField
 
-from .util import generate_profile_img
-
 
 class User(AbstractUser):
     date_of_birth = models.DateField(blank=True, null=True)
     about = models.TextField(blank=True, null=True)
     country = CountryField(blank=True, null=True)
-    img_profile = models.ImageField(default="/static/network/profile_img/default.png", blank=True)
+    img_profile = models.ImageField(default="network/profile_img/default.png", blank=True)
 
     def __str__(self):
-        return f"{self.username} since {self.date_joined}"
+        return f"{self.username}"
 
 
 class Post(models.Model):

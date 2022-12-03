@@ -2,9 +2,6 @@
 {% load static %}
 
 {% block body %}
-    {% block script %}
-    <script type="module" src="{% static 'network/main.js' %}"></script>
-    {% endblock %}
     <h1 id="page-title"></h1>
     <div id="new-post">
         {% if request.user.is_authenticated %}        
@@ -16,6 +13,7 @@
             </form>
         {% endif %}
     </div>
+    <!--
     {% for post in posts %}
         <div>
             <img src="{{ post.user.img_profile }}">
@@ -29,4 +27,9 @@
             </div>
         </div>
     {% endfor %}
+-->
+{% endblock %}
+
+{% block script %}
+    <script type="module" src="{% static 'network/main.js' %}"></script>
 {% endblock %}

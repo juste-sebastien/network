@@ -2,8 +2,8 @@
 const allPosts = document.querySelector('#link-all-posts');
 const submitPost = document.querySelector('#new-post-submit');
 const postContent = document.querySelector('#new-post-content');
-var heartButton = document.querySelector('[id|=heart-icon]');
-console.log(heartButton);
+const body = document.querySelector('.body');
+const h1 = document.querySelector('#page-title');
 
 
 // Add EventListener on some elements
@@ -11,18 +11,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     allPosts.addEventListener('click', () => add_title('All Posts'));
     submitPost.addEventListener('click', send_post);
-    heartButton.addEventListener('click', like);
-
 
     // By default
     add_title('All Posts');
+    load_posts();
 });
 
 
 function add_title(title) {
-    const h1 = document.querySelector('#page-title');
-    
-    h1.innerHTML = title;
+    h1.textContent = title;
 }
 
 
@@ -39,6 +36,7 @@ function send_post(event) {
     })
     .then(function() {
       postContent.value = '';
+      load_posts();
     })
     // Catch the error if one occurs
     .catch(error => {
@@ -55,11 +53,16 @@ function load_posts() {
       let postDiv = document.createElement('div');
 
       let image = document.createElement('img');
+      image.src = post.user_profile_img;
       postDiv.appendChild(image);
 
       let subDiv1 = document.createElement('div');
       let title = document.createElement('h5');
-      title.textContent = post.user;
+      title.textContent = post.username;
+      title.style.cursor = 'pointer';
+      title.addEventListener('click', function() {
+        load_profile(post.username);
+      })
       subDiv1.appendChild(title);
       let content = document.createElement('p');
       content.textContent = post.content;
@@ -70,18 +73,22 @@ function load_posts() {
       let time = document.createElement('p');
       time.textContent = post.timestamp;
       subDiv2.appendChild(time);
+      
       let likeZone = document.createElement('p');
-
       let heart = document.createElement('span');
       heart.style.cursor = 'pointer';
-      heart.style.color = 'ligthgrey';
-      heart.innerHTML = '&#10084;';
+      heart.textContent = '♡';
       heart.addEventListener('click', function() {
-        heart.style.color = 'red';
+        heart.textContent = '❤';
       })
-      likeZone.textContent = `${heart} ${post.like}`;
+      likeZone.appendChild(heart);
+      let counter = document.createElement('span');
+      counter.textContent = post.like;
+      likeZone.appendChild(counter);
+
       subDiv2.appendChild(likeZone);
       postDiv.appendChild(subDiv2);
+      body.appendChild(postDiv);
     })
   })
   // Catch potential error
@@ -90,6 +97,36 @@ function load_posts() {
   });
 }
 
-function like() {
-  console.log('ok');
+
+function load_profile(name) {
+  body.innerHTML = "";
+  let title = name.charAt(0).toUpperCase() + name.slice(1);
+  add_title(`${title}'s Profile`);
+  body.appendChild(h1);
+
+  let image = document.createElement('img');
+  image.src = user.img_profile;
+  
+  let username = document.createElement('p');
+  username.textContent = user.username;
+
+  let statPanel = document.createElement('div');
+  let posts = document.createElement('div');
+  posts.textContent = 'Total posts: ' + user.total_posts
+  statPanel.appendChild(posts);
+
+  let date = document.createElement('div');
+  date.textContent = 'Since: ' + user.date_joined;
+  statPanel.appendChild(date);
+
+  let followers = document.createElement('div');
+  if (user.is_authenticated && request.user != user.username) {
+    let button = document.createElement('button');
+    button.value = user.statement ? 'Follow' : 'Unfollow';
+    followers.textContent = 'Total followers: ' + user.total_followers;
+    followers.appendChild(button);
+  } else {
+    followers.textContent = 'Total followers: ' + user.total_followers;
+  }
+
 }

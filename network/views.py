@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from .models import User, Post, Relationship
 
 from .util import generate_profile_img as generate
+from .util import is_in_relation
 
 
 def index(request):
@@ -95,20 +96,22 @@ def new_post(request):
     return JsonResponse({"message": "Post created successfully."}, status=201)
 
 
-def all_posts(request, title):
-    posts = Post.objects.all()
+def all_posts(request):
+    posts = Post.objects.order_by("-timestamp").all().values()
 
-    posts = posts.order_by("-timestamp").all()
+    for post in posts:
+        post_user = User.objects.get(id=post["user_id"])
+        post["username"] = post_user.username
+        post["user_profile_img"] = post_user.img_profile.path
     return JsonResponse([post for post in posts], safe=False)
 
 
 def profile_page(request, username):
     user_profile = User.objects.get(username=username)
-
     # Check if request user is registered
     try:
         current_user = User.objects.get(username=request.user)
-    except User.DoesNotExist:
+    except User.DoesNotExist as error:
         statement = ''
     else:
         if is_in_relation(current_user, user_profile):
@@ -120,7 +123,6 @@ def profile_page(request, username):
     total_followings = Relationship.objects.filter(from_user=user_profile).all().count()
     total_posts = Post.objects.filter(user=user_profile).all().count()
 
-
     return render(request, "network/profile.html", {
         "user": user_profile,
         "total_followers": total_followers,
@@ -129,11 +131,3 @@ def profile_page(request, username):
         "statement": statement,
         "posts": Post.objects.filter(user=user_profile).all(),
     })
-
-
-def is_in_relation(user1, user2):
-    try:
-        Relationship.objects.get(from_user=user1, to_user=user2)
-    except Relationship.DoesNotExist:
-        return False
-    return True
