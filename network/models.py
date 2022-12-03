@@ -9,6 +9,10 @@ class User(AbstractUser):
     about = models.TextField(blank=True, null=True)
     country = CountryField(blank=True, null=True)
     img_profile = models.ImageField(default="network/profile_img/default.png", blank=True)
+    total_followers = models.IntegerField(max_length=64, blank=True, default=0)
+    total_followings = models.IntegerField(max_length=64, blank=True, default=0)
+    total_posts = models.IntegerField(max_length=64, blank=True, default=0)
+    statement = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.username}"

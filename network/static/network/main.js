@@ -104,29 +104,45 @@ function load_profile(name) {
   add_title(`${title}'s Profile`);
   body.appendChild(h1);
 
-  let image = document.createElement('img');
-  image.src = user.img_profile;
-  
-  let username = document.createElement('p');
-  username.textContent = user.username;
+  let profile = document.createElement('div');
 
-  let statPanel = document.createElement('div');
-  let posts = document.createElement('div');
-  posts.textContent = 'Total posts: ' + user.total_posts
-  statPanel.appendChild(posts);
+  fetch(`profile/${name}`)
+  .then(response => response.json())
+  .then(user => {
+    let image = document.createElement('img');
+    image.src = user.img_profile;
+    profile.appendChild(image);
+    
+    let username = document.createElement('p');
+    username.textContent = user.username;
+    profile.appendChild(username);
 
-  let date = document.createElement('div');
-  date.textContent = 'Since: ' + user.date_joined;
-  statPanel.appendChild(date);
+    let statPanel = document.createElement('div');
+    let posts = document.createElement('div');
+    posts.textContent = 'Total posts: ' + int(user.total_posts)
+    statPanel.appendChild(posts);
 
-  let followers = document.createElement('div');
-  if (user.is_authenticated && request.user != user.username) {
-    let button = document.createElement('button');
-    button.value = user.statement ? 'Follow' : 'Unfollow';
-    followers.textContent = 'Total followers: ' + user.total_followers;
-    followers.appendChild(button);
-  } else {
-    followers.textContent = 'Total followers: ' + user.total_followers;
-  }
+    let date = document.createElement('div');
+    date.textContent = 'Since: ' + user.date_joined;
+    statPanel.appendChild(date);
+
+    let followers = document.createElement('div');
+    if (user.is_authenticated && user.request_user != user.username) {
+      let button = document.createElement('button');
+      button.value = user.statement ? 'Unfollow' : 'Follow';
+      followers.textContent = 'Total followers: ' + Number(user.total_followers);
+      followers.appendChild(button);
+    } else {
+      followers.textContent = 'Total followers: ' + Number(user.total_followers);
+    }
+    statPanel.appendChild(followers);
+
+    profile.appendChild(statPanel);
+    body.appendChild(profile);
+    load_posts();
+  })
+  .catch(error => {
+    console.log('Error: ', error);
+  });
 
 }

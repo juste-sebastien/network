@@ -86,7 +86,9 @@ def new_post(request):
         return JsonResponse({
             "error": "Post must not be empty."
         }, status=400)
-    user = request.user
+    user = User.objects.get(username=request.user)
+    user.total_posts += 1
+    user.save()
     timestamp = timezone.now()
     like = 0
 
@@ -112,22 +114,19 @@ def profile_page(request, username):
     try:
         current_user = User.objects.get(username=request.user)
     except User.DoesNotExist as error:
-        statement = ''
+        user_profile.statement = False
     else:
         if is_in_relation(current_user, user_profile):
-            statement = 'Unfollow'
+            user_profile.statement = False
         else:
-            statement = 'Follow'
+            user_profile.statement = True
+        user_profile.save()
 
-    total_followers = Relationship.objects.filter(to_user=user_profile).all().count()
-    total_followings = Relationship.objects.filter(from_user=user_profile).all().count()
-    total_posts = Post.objects.filter(user=user_profile).all().count()
+    users = []
+    for user in User.objects.all().values():
+        user["is_authenticated"] = True if current_user.is_authenticated else False
+        user["request_user"] = True if current_user.id == user_profile.id else False
+        print(user)
+        users.append(user)
 
-    return render(request, "network/profile.html", {
-        "user": user_profile,
-        "total_followers": total_followers,
-        "total_followings": total_followings,
-        "total_posts": total_posts,
-        "statement": statement,
-        "posts": Post.objects.filter(user=user_profile).all(),
-    })
+    return JsonResponse(users, safe=False)
