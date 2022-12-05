@@ -1,5 +1,7 @@
 import json
 
+from datetime import datetime
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
@@ -9,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
-from .models import User, Post, Relationship
+from .models import *
 
 from .util import generate_profile_img as generate
 from .util import is_in_relation
@@ -108,6 +110,16 @@ def all_posts(request):
     return JsonResponse([post for post in posts], safe=False)
 
 
+def all_posts_of(request, name):
+    user = User.objects.get(username=name)
+    posts = Post.objects.order_by("-timestamp").filter(user_id=user.id).all().values()
+    for post in posts:
+        post_user = User.objects.get(id=post["user_id"])
+        post["username"] = post_user.username
+        post["user_profile_img"] = post_user.img_profile.path
+    return JsonResponse([post for post in posts], safe=False)
+
+
 def profile_page(request, username):
     user_profile = User.objects.get(username=username)
     # Check if request user is registered
@@ -117,16 +129,41 @@ def profile_page(request, username):
         user_profile.statement = False
     else:
         if is_in_relation(current_user, user_profile):
-            user_profile.statement = False
-        else:
             user_profile.statement = True
+        else:
+            user_profile.statement = False
         user_profile.save()
 
-    users = []
+    user_data = []
     for user in User.objects.all().values():
-        user["is_authenticated"] = True if current_user.is_authenticated else False
-        user["request_user"] = True if current_user.id == user_profile.id else False
-        print(user)
-        users.append(user)
+        if user["id"] == user_profile.id:
+            user["is_authenticated"] = True if current_user.is_authenticated else False
+            user["request_user"] = True if current_user.id == user_profile.id else False
+            since = (timezone.now() - user_profile.date_joined).total_seconds()
+            user["since"] = since * 1000
+            user_data.append(user)
 
-    return JsonResponse(users, safe=False)
+    return JsonResponse(user_data, safe=False)
+
+
+def follow(request, username):
+    follower = User.objects.get(username=request.user)
+    author = User.objects.get(username=username)
+    data = json.loads(request.body)
+    print(data.get("follow"))
+    if data.get("follow") is not None:
+        if is_in_relation(follower, author):
+            relation = Relationship.objects.get(from_user=follower, to_user=author)
+            relation.delete()
+            author.total_followers -= 1
+            print(author.total_followers)
+            author.save()
+        else:
+            relation = Relationship.objects.create(from_user=follower, to_user=author, status=RELATIONSHIP_FOLLOWING)
+            relation.save()
+            author.total_followers += 1
+            print(author.total_followers)
+            author.save()
+    return HttpResponse(status=204)
+
+

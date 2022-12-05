@@ -4,14 +4,35 @@
 {% block body %}
     <h1 id="page-title"></h1>
     <div id="new-post">
-        {% if request.user.is_authenticated %}        
-            <form id="new-post-form">
-                {% csrf_token %}
-                <label for="new-post-content">New Post</label>
-                <textarea id="new-post-content" class="form-control m-1"></textarea>
+               
+        <form id="new-post-form">
+            {% csrf_token %}
+            <label for="new-post-content">New Post</label>
+            <textarea id="new-post-content" class="form-control m-1"></textarea>
+            {% if request.user.is_authenticated %} 
                 <input id="new-post-submit" type="submit" class="btn btn-primary" value="Post" />
-            </form>
-        {% endif %}
+            {% else %}
+            <input id="new-post-submit" type="submit" class="btn btn-primary" value="Post" disabled/>
+            {% endif %}
+        </form>
+        
+    </div>
+    <div id="profile-container">
+        <img id="profile-image" src="" />
+        <p id="profile-name"></p>
+        <div>
+            <div>Total posts: <span id="profile-total-posts"></span></div>
+            <div>Since: <span id="profile-date"></span></div>
+            <div>
+                <p>Total followers: <span id="profile-followers"></span></p>
+                <button id="profile-follow-button">
+                    {% csrf_token %}
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="posts-container">
+        
     </div>
     <!--
     {% for post in posts %}
