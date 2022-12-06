@@ -17,7 +17,7 @@
         </form>
         
     </div>
-    <div id="profile-container">
+    <div id="profile-container" style="display: none;">
         <img id="profile-image" src="" />
         <p id="profile-name"></p>
         <div>
@@ -25,9 +25,6 @@
             <div>Since: <span id="profile-date"></span></div>
             <div>
                 <p>Total followers: <span id="profile-followers"></span></p>
-                <button id="profile-follow-button">
-                    {% csrf_token %}
-                </button>
             </div>
         </div>
     </div>

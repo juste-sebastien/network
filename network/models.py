@@ -9,10 +9,9 @@ class User(AbstractUser):
     about = models.TextField(blank=True, null=True)
     country = CountryField(blank=True, null=True)
     img_profile = models.ImageField(default="network/profile_img/default.png", blank=True)
-    total_followers = models.IntegerField(max_length=64, blank=True, default=0)
-    total_followings = models.IntegerField(max_length=64, blank=True, default=0)
-    total_posts = models.IntegerField(max_length=64, blank=True, default=0)
-    statement = models.BooleanField(default=False)
+    total_followers = models.IntegerField(blank=True, default=0)
+    total_followings = models.IntegerField(blank=True, default=0)
+    total_posts = models.IntegerField(blank=True, default=0)
 
     def __str__(self):
         return f"{self.username}"
@@ -29,11 +28,13 @@ class Post(models.Model):
         return f"{self.id}: posted by {self.user.username} the {self.timestamp}"
 
 
+RELATIONSHIP_NONE = 0
 RELATIONSHIP_FOLLOWING = 1
 RELATIONSHIP_BLOCKED = 2
 RELATIONSHIP_STATUSES = (
     (RELATIONSHIP_FOLLOWING, 'Following'),
     (RELATIONSHIP_BLOCKED, 'Blocked'),
+    (RELATIONSHIP_NONE, 'None')
 )
 
 class Relationship(models.Model):
@@ -45,7 +46,7 @@ class Relationship(models.Model):
                                 on_delete=models.CASCADE,
                                 related_name='relationships_to')
 
-    status = models.IntegerField(choices=RELATIONSHIP_STATUSES)
+    status = models.IntegerField(choices=RELATIONSHIP_STATUSES, default=RELATIONSHIP_NONE)
 
     def __str__(self):
         return f'{self.from_user.username} likes {self.to_user.username}'

@@ -9,7 +9,6 @@ const profileDate = document.querySelector('#profile-date');
 const profilePosts = document.querySelector('#profile-total-posts');
 const profileFollowers = document.querySelector('#profile-followers');
 const profileImage = document.querySelector('#profile-image');
-const profileFollowButton = document.querySelector('#profile-follow-button');
 
 export function generateEditButton() {
     const button = document.createElement('button');
@@ -140,14 +139,17 @@ export function generate_user_profile(user) {
     profilePosts.textContent = user.total_posts;
     profileDate.textContent = convert_time(user.since);
     profileFollowers.textContent = user.total_followers;
-    generate_follow_button(profileFollowButton, user);
+    const profileFollowButton = generate_follow_button(user);
     profileFollowButton.addEventListener('click', () => {
         follow_unfollow(user);
         load_profile(user.username);
-    })
+        })
+    profile.appendChild(profileFollowButton);
 }
 
-function generate_follow_button(button, user) {
+function generate_follow_button(user) {
+    const button = document.createElement('button');
+    button.id = 'profile-follow-button';
     if (!user.statement && !user.request_user && user.is_authenticated) {
         button.textContent = 'Follow';
     } else if (user.statement && !user.request_user && user.is_authenticated) {
@@ -155,4 +157,5 @@ function generate_follow_button(button, user) {
     } else {
         button.style.display = 'none';
     };
+    return button;
 }

@@ -3,6 +3,7 @@ import { get_cookie } from './utils.js';
 
 // Defining all variables
 const allPosts = document.querySelector('#link-all-posts');
+const linkFollow = document.querySelector('#link-follow');
 const submitPost = document.querySelector('#new-post-submit');
 const postContent = document.querySelector('#new-post-content');
 const body = document.querySelector('.body');
@@ -16,6 +17,7 @@ const postsContainer = document.querySelector('#posts-container');
 document.addEventListener('DOMContentLoaded', function() {
     
     allPosts.addEventListener('click', () => load_page('All Posts', ''));
+    linkFollow.addEventListener('click', () => load_page('Followings'))
     submitPost.addEventListener('click', send_post);
 
     // By default
@@ -56,8 +58,30 @@ export function load_page(title, name) {
     let nameUpper = name.charAt(0).toUpperCase() + name.slice(1)
     h1.textContent = `${nameUpper}'s ${title}`;
     load_profile(name);
+  } else if (title === 'Followings') {
+    h1.textContent = title;
+    newPost.style.display = 'none';
+    profile.style.display = 'none';
+    load_follows();
   }
 }
+
+
+function load_follows() {
+  postsContainer.innerHTML = "";
+  fetch('/posts/follows')
+  .then(response => response.json())
+  .then(posts => {
+    posts.forEach(post => {
+      postsContainer.appendChild(generate_one_post(post));
+    })
+  })
+  // Catch potential error
+  .catch(error => {
+    console.log('Error: ', error);
+  });
+}
+
 
 function load_posts(username = "") {
   postsContainer.innerHTML = "";
@@ -92,11 +116,9 @@ function load_posts(username = "") {
 export function load_profile(name) {
   fetch(`profile/${name}`)
   .then(response => response.json())
-  .then(data => {
-    data.forEach(user => {
+  .then(user => {
       generate_user_profile(user);
       load_posts(user.username);
-    });
   })
   .catch(error => {
     console.log('Error: ', error);

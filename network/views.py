@@ -121,49 +121,70 @@ def all_posts_of(request, name):
 
 
 def profile_page(request, username):
-    user_profile = User.objects.get(username=username)
+    # Check if requested user is registered
+    try:
+        user_profile = User.objects.get(username=username)
+    except User.DoesNotExist as error:
+        return JsonResponse({"error": "User's profile not found."}, status=404)
     # Check if request user is registered
     try:
-        current_user = User.objects.get(username=request.user)
+        request_user = User.objects.get(username=request.user)
     except User.DoesNotExist as error:
-        user_profile.statement = False
-    else:
-        if is_in_relation(current_user, user_profile):
-            user_profile.statement = True
-        else:
-            user_profile.statement = False
-        user_profile.save()
+        return JsonResponse({"error": "Request user not found."}, status=404)
 
-    user_data = []
-    for user in User.objects.all().values():
-        if user["id"] == user_profile.id:
-            user["is_authenticated"] = True if current_user.is_authenticated else False
-            user["request_user"] = True if current_user.id == user_profile.id else False
-            since = (timezone.now() - user_profile.date_joined).total_seconds()
-            user["since"] = since * 1000
-            user_data.append(user)
+    is_followed = True if is_in_relation(request_user, user_profile) else False
+    since = (timezone.now() - user_profile.date_joined).total_seconds() * 1000
 
-    return JsonResponse(user_data, safe=False)
+    response = {
+        'username' : user_profile.username,
+        'total_posts' : user_profile.total_posts,
+        'following' : user_profile.total_followings,
+        'total_followers' : user_profile.total_followers,
+        'is_followed' : is_followed,
+        'since' : since,
+        'requested_by' : request.user.username if request.user.is_authenticated else None,
+    }
+
+    return JsonResponse(response, safe=False)
 
 
+@login_required
 def follow(request, username):
     follower = User.objects.get(username=request.user)
     author = User.objects.get(username=username)
     data = json.loads(request.body)
     print(data.get("follow"))
+    try: 
+        relation = Relationship.objects.get(from_user=follower, to_user=author)
+    except Relationship.DoesNotExist:
+        relation = Relationship.objects.create(from_user=follower, to_user=author)
     if data.get("follow") is not None:
-        if is_in_relation(follower, author):
-            relation = Relationship.objects.get(from_user=follower, to_user=author)
-            relation.delete()
-            author.total_followers -= 1
-            print(author.total_followers)
-            author.save()
-        else:
-            relation = Relationship.objects.create(from_user=follower, to_user=author, status=RELATIONSHIP_FOLLOWING)
+        if data["follow"]:
+            relation.status = RELATIONSHIP_FOLLOWING
             relation.save()
+            print(Relationship.objects.all())
             author.total_followers += 1
             print(author.total_followers)
             author.save()
+        else:
+            relation.status = RELATIONSHIP_NONE
+            relation.save()
+            print(Relationship.objects.all())
+            author.total_followers -= 1
+            print(author.total_followers)
+            author.save()
+
     return HttpResponse(status=204)
 
-
+@login_required
+def posts_follows(request):
+    user = User.objects.get(username=request.user)
+    posts = Post.objects.order_by("-timestamp").all().values()
+    follows = []
+    for post in posts:
+        post_user = User.objects.get(id=post["user_id"])
+        if is_in_relation(user, post_user):
+            post["username"] = post_user.username
+            post["user_profile_img"] = post_user.img_profile.path
+            follows.append(post)
+    return JsonResponse([post for post in follows], safe=False)
