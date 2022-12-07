@@ -118,10 +118,13 @@ def get_posts(request):
     if feed: 
         follows = []
         for post in posts:
+            current_post = Post.objects.get(id=post["id"])
             post_user = User.objects.get(id=post["user_id"])
             if request.user != None and is_in_relation(request_user, post_user):
                 post["username"] = post_user.username
                 post["user_profile_img"] = post_user.img_profile.path
+                post["since"] = (timezone.now() - post["timestamp"]).total_seconds() * 1000
+                post["is_liker"] = True if post["like"] !=0 and request_user in current_post.likers.all() else False
                 follows.append(post)
         posts = follows
     else:
@@ -130,9 +133,12 @@ def get_posts(request):
             posts = posts.filter(user_id=user_profile.id)
 
         for post in posts:
+            current_post = Post.objects.get(id=post["id"])
             post_user = User.objects.get(id=post["user_id"])
             post["username"] = post_user.username
             post["user_profile_img"] = post_user.img_profile.path
+            post["since"] = (timezone.now() - post["timestamp"]).total_seconds() * 1000
+            post["is_liker"] = True if post["like"] !=0 and request_user in current_post.likers.all() else False
 
     # Etablish pagination
     paginator = Paginator(posts, posts_per_page)
@@ -222,17 +228,49 @@ def follow(request, username):
 
 
 def edit_post(request):
+    # Transform request body in Python dict
     data = json.loads(request.body)
+
+    # Get info from data
     post_id = data.get("post_id")
     content = data.get("content")
 
+    # Try to get specific post
     try:
         post = Post.objects.get(id=post_id)
     except Post.DoesNotExist:
         return JsonResponse({"error": "Post not found."}, status=404)
 
+    # Modify content and save post
     post.content = content
     post.save()
     
     return HttpResponse(status=200)
     
+
+def like_post(request):
+    # Transform request body in Python dict
+    data = json.loads(request.body)
+
+    post_id = data.get("post_id")
+    action = data.get("action")
+
+    # Try to get specific post
+    try:
+        post = Post.objects.get(id=post_id)
+        user = User.objects.get(username=request.user)
+    except Post.DoesNotExist as post_error:
+        return JsonResponse({"error": "Post not found."}, status=404)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found."}, status=404)
+
+    # Modify total likes and save post
+    if action == 'add':
+        post.like += 1
+        post.likers.add(user)
+    else:
+        post.like -= 1
+        post.likers.remove(user)
+    post.save()
+    
+    return HttpResponse(status=200)

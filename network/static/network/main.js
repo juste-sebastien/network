@@ -232,5 +232,38 @@ export function saveEditedPost(paragraph, textarea, button1, button2, post) {
   .catch(error => {
     console.log('Error:', error);
   });
+}
 
+export function addRemoveLike(counter, button, post) {
+  if (button.textContent === '♡') {
+    let new_count = Number(counter.textContent) + 1;
+    button.textContent =  '❤';
+    sendLikeInfo(post, 'add');
+    return new_count
+  } else {
+    let new_count = Number(counter.textContent) - 1;
+    button.textContent = '♡';
+    sendLikeInfo(post, 'remove');
+    return new_count
+  }
+}
+
+function sendLikeInfo(post, action) {
+  // Pass it to db
+  fetch(`/posts/like`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        // Get content of new post
+        post_id: post.id,
+        action: action,
+    }),
+    credentials: 'same-origin',
+    headers: {
+      "X-CSRFToken": getCookie("csrftoken")
+    }
+  })
+  // Catch the error if one occurs
+  .catch(error => {
+    console.log('Error:', error);
+  });
 }
