@@ -5,31 +5,31 @@
     <h1 id="page-title"></h1>
     <div id="new-post">
                
-        <form id="new-post-form">
+        <form class="mb-3" id="new-post-form" style="width: 95vw; margin:auto;">
             {% csrf_token %}
-            <label for="new-post-content">New Post</label>
-            <textarea id="new-post-content" class="form-control m-1"></textarea>
+            <label class="form-label" for="new-post-content">New Post</label>
+            <textarea class="form-control" id="new-post-content" class="form-control m-1"></textarea>
             {% if request.user.is_authenticated %} 
                 <input id="new-post-submit" type="submit" class="btn btn-primary" value="Post" />
             {% else %}
-            <input id="new-post-submit" type="submit" class="btn btn-primary" value="Post" disabled/>
+            <input id="new-post-submit" type="submit" class="btn btn-primary disabled" value="Post" disabled/>
             {% endif %}
         </form>
         
     </div>
-    <div id="profile-container" style="display: none;">
-        <img id="profile-image" src="" />
-        <p id="profile-name"></p>
-        <div>
-            <div>Total posts: <span id="profile-total-posts"></span></div>
-            <div>Since: <span id="profile-date"></span></div>
-            <div>
-                <p>Total followers: <span id="profile-followers"></span></p>
-            </div>
-            <div id="profile-follow-panel"></div>
+    <div class="card text-center" id="profile-container" style="display: none; width: 95vw; margin: auto;">
+        <div class="card-header">
+            <img class="card-img"id="profile-image" src="" style="width: 100px; margin: auto;"/>
+            <p class="card-title" id="profile-name"></p>
+        </div>
+        <div class="row align-items-center">
+            <div class="col">Total posts: <span id="profile-total-posts"></span></div>
+            <div class="col">Since: <span id="profile-date"></span></div>
+            <div class="col">Total followers: <span id="profile-followers"></span></div>
+            <div class="col" id="profile-follow-panel"></div>
         </div>
     </div>
-    <div id="posts-main-container">
+    <div class="card-body" id="posts-main-container" style="width: 95vw; margin: auto;">
         <nav>
             <ul class="pagination">
                 <li id="navigate-page-previous-button">
@@ -45,21 +45,6 @@
         </nav>
         <div id="posts-container"></div>
     </div>
-    <!--
-    {% for post in posts %}
-        <div>
-            <img src="{{ post.user.img_profile }}">
-            <div>
-                <a href="{% url 'profile_page' post.user.username %}"><h5 id="{{ post.user.username }}">{{ post.user.username }}</h5></a>
-                <p>{{ post.content }}</p>
-            </div>
-            <div>
-                <p>{{ post.timestamp }}</p>
-                <p><button id="heart-icon-{{ post.id }}">&#10084;</button>{{ post.like }}</p>
-            </div>
-        </div>
-    {% endfor %}
--->
 {% endblock %}
 
 {% block script %}

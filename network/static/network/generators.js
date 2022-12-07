@@ -15,10 +15,12 @@ const profilePanel = document.querySelector('#profile-follow-panel');
 export function generateOnePost(post, request_user = '') {
     // Create one div per post
     let postDiv = document.createElement('div');
+    postDiv.className = 'd-flex flex-row mb-2';
 
     // Add img
     let image = document.createElement('img');
     image.src = post.user_profile_img;
+    image.className = 'col-1 me-1';
     postDiv.appendChild(image);
 
     // Create a sub-div to insert content of post and author's name
@@ -37,10 +39,29 @@ export function generateOnePost(post, request_user = '') {
     // Display content only for modify it
     let editZone = document.createElement('textarea');
     editZone.style.display = 'none';
+    editZone.className = 'form-control';
     subDiv1.appendChild(editZone);
+    subDiv1.className = 'flex-grow-1 ms-1';
     postDiv.appendChild(subDiv1);
 
-    // Create a sub-div to display time 
+    // Create sub-div if user is author
+    if (post.username === request_user) {
+        let subDiv3 = document.createElement('div');
+        let editButton = generateSaveEditButton(content, editZone, 'edit');
+        let saveButton = generateSaveEditButton(content, editZone, 'save');
+        editButton.addEventListener('click', function() {
+            editPost(content, editZone, editButton, saveButton);
+        })
+        saveButton.addEventListener('click', function() {
+            saveEditedPost(content, editZone, editButton, saveButton, post);
+        })
+        subDiv3.appendChild(editButton);
+        subDiv3.appendChild(saveButton);
+        subDiv3.className = 'align-self-center p-1 m-1';
+        postDiv.appendChild(subDiv3);
+    }
+
+    // Create a sub-div to display time and like
     let subDiv2 = document.createElement('div');
     let time = document.createElement('p');
     time.textContent = convertTime(post.since);
@@ -60,20 +81,7 @@ export function generateOnePost(post, request_user = '') {
 
     subDiv2.appendChild(likeZone);
     postDiv.appendChild(subDiv2);
-    if (post.username === request_user) {
-        let subDiv3 = document.createElement('div');
-        let editButton = generateSaveEditButton(content, editZone, 'edit');
-        let saveButton = generateSaveEditButton(content, editZone, 'save');
-        editButton.addEventListener('click', function() {
-            editPost(content, editZone, editButton, saveButton);
-        })
-        saveButton.addEventListener('click', function() {
-            saveEditedPost(content, editZone, editButton, saveButton, post);
-        })
-        subDiv3.appendChild(editButton);
-        subDiv3.appendChild(saveButton);
-        postDiv.appendChild(subDiv3);
-    }
+    
     return postDiv;
 }
 
@@ -102,6 +110,7 @@ function generateFollowButton(user) {
     } else {
         button.style.display = 'none';
     };
+    button.className = 'btn btn-primary';
     return button;
 }
 
@@ -109,9 +118,11 @@ function generateFollowButton(user) {
 function generateSaveEditButton(content, zone, functionalitie) {
     let editButton = document.createElement('button');
     editButton.textContent = 'Edit';
+    editButton.className = 'btn btn-primary';
     let saveButton = document.createElement('button');
     saveButton.textContent = 'Save';
     saveButton.style.display = 'none';
+    saveButton.className = 'btn btn-primary';
 
     if (functionalitie === 'edit') {
         return editButton;
