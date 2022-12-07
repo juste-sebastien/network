@@ -1,4 +1,4 @@
-export function get_cookie(name) {
+export function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
@@ -22,7 +22,7 @@ export function get_cookie(name) {
       };
   }
 
-export function convert_time(time) {
+export function convertTime(time) {
     var since = 0;
     if (time > 864 * Math.pow(10, 5)) {
         since = Math.round(time / (864 * Math.pow(10, 5)));

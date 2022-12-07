@@ -49,4 +49,10 @@ class Relationship(models.Model):
     status = models.IntegerField(choices=RELATIONSHIP_STATUSES, default=RELATIONSHIP_NONE)
 
     def __str__(self):
-        return f'{self.from_user.username} likes {self.to_user.username}'
+        if self.status == 1:
+            return f'{self.from_user.username} likes {self.to_user.username}'
+        elif self.status == 2:
+            return f'{self.from_user.username} has blocked {self.to_user.username}'
+        else:
+            return f'No relation between {self.from_user.username} and {self.to_user.username}'
+            

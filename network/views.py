@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -100,24 +101,54 @@ def new_post(request):
     return JsonResponse({"message": "Post created successfully."}, status=201)
 
 
-def all_posts(request):
+def get_posts(request):
+    # Get request informations
+    page_number = int(request.GET.get("page"))
+    posts_per_page = int(request.GET.get("perPage"))
+    user = request.GET.get("user") or None
+    feed = request.GET.get("feed") or None
     posts = Post.objects.order_by("-timestamp").all().values()
+    
+    try:
+        request_user = User.objects.get(username=request.user)
+    except User.DoesNotExist:
+        request_user = None
 
-    for post in posts:
-        post_user = User.objects.get(id=post["user_id"])
-        post["username"] = post_user.username
-        post["user_profile_img"] = post_user.img_profile.path
-    return JsonResponse([post for post in posts], safe=False)
+    # Formate post with informations
+    if feed: 
+        follows = []
+        for post in posts:
+            post_user = User.objects.get(id=post["user_id"])
+            if request.user != None and is_in_relation(request_user, post_user):
+                post["username"] = post_user.username
+                post["user_profile_img"] = post_user.img_profile.path
+                follows.append(post)
+        posts = follows
+    else:
+        if user:
+            user_profile = User.objects.get(username=user)
+            posts = posts.filter(user_id=user_profile.id)
 
+        for post in posts:
+            post_user = User.objects.get(id=post["user_id"])
+            post["username"] = post_user.username
+            post["user_profile_img"] = post_user.img_profile.path
 
-def all_posts_of(request, name):
-    user = User.objects.get(username=name)
-    posts = Post.objects.order_by("-timestamp").filter(user_id=user.id).all().values()
-    for post in posts:
-        post_user = User.objects.get(id=post["user_id"])
-        post["username"] = post_user.username
-        post["user_profile_img"] = post_user.img_profile.path
-    return JsonResponse([post for post in posts], safe=False)
+    # Etablish pagination
+    paginator = Paginator(posts, posts_per_page)
+    page = paginator.get_page(page_number)
+
+    # Create response 
+    response = {
+        "requested_by" : request.user.username,
+        "page" : page_number,
+        "page_count" : paginator.num_pages,
+        "next_page" : page.has_next(),
+        "previous_page" : page.has_previous(),
+        "posts" : [post for post in page.object_list],
+    }
+
+    return JsonResponse(response, status=200)
 
 
 def profile_page(request, username):
@@ -141,6 +172,8 @@ def profile_page(request, username):
         'following' : user_profile.total_followings,
         'total_followers' : user_profile.total_followers,
         'is_followed' : is_followed,
+        'is_authenticated': True if request.user.is_authenticated else False,
+        'is_request_user': True if request.user == user_profile.username else False,
         'since' : since,
         'requested_by' : request.user.username if request.user.is_authenticated else None,
     }
@@ -153,7 +186,6 @@ def follow(request, username):
     follower = User.objects.get(username=request.user)
     author = User.objects.get(username=username)
     data = json.loads(request.body)
-    print(data.get("follow"))
     try: 
         relation = Relationship.objects.get(from_user=follower, to_user=author)
     except Relationship.DoesNotExist:
@@ -162,29 +194,28 @@ def follow(request, username):
         if data["follow"]:
             relation.status = RELATIONSHIP_FOLLOWING
             relation.save()
-            print(Relationship.objects.all())
+            is_followed = True
             author.total_followers += 1
-            print(author.total_followers)
             author.save()
         else:
             relation.status = RELATIONSHIP_NONE
             relation.save()
-            print(Relationship.objects.all())
+            is_followed = False
             author.total_followers -= 1
-            print(author.total_followers)
             author.save()
 
-    return HttpResponse(status=204)
+    since = (timezone.now() - author.date_joined).total_seconds() * 1000
 
-@login_required
-def posts_follows(request):
-    user = User.objects.get(username=request.user)
-    posts = Post.objects.order_by("-timestamp").all().values()
-    follows = []
-    for post in posts:
-        post_user = User.objects.get(id=post["user_id"])
-        if is_in_relation(user, post_user):
-            post["username"] = post_user.username
-            post["user_profile_img"] = post_user.img_profile.path
-            follows.append(post)
-    return JsonResponse([post for post in follows], safe=False)
+    response = {
+        'username' : author.username,
+        'total_posts' : author.total_posts,
+        'following' : author.total_followings,
+        'total_followers' : author.total_followers,
+        'is_followed' : is_followed,
+        'is_authenticated': True if request.user.is_authenticated else False,
+        'is_request_user': True if request.user == author.username else False,
+        'since' : since,
+        'requested_by' : request.user.username if request.user.is_authenticated else None,
+    }
+
+    return JsonResponse(response, status=200)

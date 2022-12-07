@@ -1,5 +1,5 @@
-import { load_page, follow_unfollow, load_profile } from './main.js';
-import { convert_time } from './utils.js';
+import { loadPage, followUnfollow, loadProfile } from './main.js';
+import { convertTime } from './utils.js';
 
 
 // Define all variables needed
@@ -9,6 +9,7 @@ const profileDate = document.querySelector('#profile-date');
 const profilePosts = document.querySelector('#profile-total-posts');
 const profileFollowers = document.querySelector('#profile-followers');
 const profileImage = document.querySelector('#profile-image');
+const profilePanel = document.querySelector('#profile-follow-panel');
 
 export function generateEditButton() {
     const button = document.createElement('button');
@@ -91,7 +92,7 @@ export function generateProfile(contents) {
 }
 
 
-export function generate_one_post(post) {
+export function generateOnePost(post) {
     let postDiv = document.createElement('div');
 
     let image = document.createElement('img');
@@ -103,7 +104,7 @@ export function generate_one_post(post) {
     title.textContent = post.username;
     title.style.cursor = 'pointer';
     title.addEventListener('click', function() {
-        load_page('profile', post.username);
+        loadPage('profile', post.username);
     })
     subDiv1.appendChild(title);
     let content = document.createElement('p');
@@ -133,26 +134,28 @@ export function generate_one_post(post) {
     return postDiv;
 }
 
-export function generate_user_profile(user) {
+export function generateUserProfile(user) {
     profileTitle.textContent = user.username;
     profileImage.src = user.img_profile;
     profilePosts.textContent = user.total_posts;
-    profileDate.textContent = convert_time(user.since);
+    profileDate.textContent = convertTime(user.since);
     profileFollowers.textContent = user.total_followers;
-    const profileFollowButton = generate_follow_button(user);
+    profilePanel.innerHTML = '';
+    const profileFollowButton = generateFollowButton(user);
     profileFollowButton.addEventListener('click', () => {
-        follow_unfollow(user);
-        load_profile(user.username);
+        followUnfollow(user);
+        loadProfile(user.username);
         })
-    profile.appendChild(profileFollowButton);
+    profilePanel.appendChild(profileFollowButton);
 }
 
-function generate_follow_button(user) {
+function generateFollowButton(user) {
     const button = document.createElement('button');
     button.id = 'profile-follow-button';
-    if (!user.statement && !user.request_user && user.is_authenticated) {
+    console.log('in generateFollowButton', user);
+    if (!user.is_followed && !user.is_request_user && user.is_authenticated) {
         button.textContent = 'Follow';
-    } else if (user.statement && !user.request_user && user.is_authenticated) {
+    } else if (user.is_followed && !user.is_request_user && user.is_authenticated) {
         button.textContent = 'Unfollow';
     } else {
         button.style.display = 'none';

@@ -26,10 +26,24 @@
             <div>
                 <p>Total followers: <span id="profile-followers"></span></p>
             </div>
+            <div id="profile-follow-panel"></div>
         </div>
     </div>
-    <div id="posts-container">
-        
+    <div id="posts-main-container">
+        <nav>
+            <ul class="pagination">
+                <li id="navigate-page-previous-button">
+                    <span class="page-link">Previous</span>
+                </li>
+                <li class="page-item disabled">
+                    <span id="navigate-page-number" class="page-link">Page 1 of 1</span>
+                </li>
+                <li id="navigate-page-next-button">
+                    <span class="page-link" >Next</span>
+                </li>
+            </ul>
+        </nav>
+        <div id="posts-container"></div>
     </div>
     <!--
     {% for post in posts %}
