@@ -1,4 +1,4 @@
-import { loadPage, followUnfollow, loadProfile } from './main.js';
+import { loadPage, followUnfollow, loadProfile, editPost, saveEditedPost } from './main.js';
 import { convertTime } from './utils.js';
 
 
@@ -11,13 +11,6 @@ const profileFollowers = document.querySelector('#profile-followers');
 const profileImage = document.querySelector('#profile-image');
 const profilePanel = document.querySelector('#profile-follow-panel');
 
-export function generateEditButton() {
-    const button = document.createElement('button');
-    button.type = "button";
-    button.className = "d-inline-block float-right edit-btn btn btn-secondary";
-    button.innerHTML = "Edit";
-    return button;
-}
 
 export function generateLikeButton(label, count) {
     const button = document.createElement('button');
@@ -92,7 +85,7 @@ export function generateProfile(contents) {
 }
 
 
-export function generateOnePost(post) {
+export function generateOnePost(post, request_user = '') {
     let postDiv = document.createElement('div');
 
     let image = document.createElement('img');
@@ -110,6 +103,10 @@ export function generateOnePost(post) {
     let content = document.createElement('p');
     content.textContent = post.content;
     subDiv1.appendChild(content);
+
+    let editZone = document.createElement('textarea');
+    editZone.style.display = 'none';
+    subDiv1.appendChild(editZone);
     postDiv.appendChild(subDiv1);
 
     let subDiv2 = document.createElement('div');
@@ -131,6 +128,20 @@ export function generateOnePost(post) {
 
     subDiv2.appendChild(likeZone);
     postDiv.appendChild(subDiv2);
+    if (post.username === request_user) {
+        let subDiv3 = document.createElement('div');
+        let editButton = generateSaveEditButton(content, editZone, 'edit');
+        let saveButton = generateSaveEditButton(content, editZone, 'save');
+        editButton.addEventListener('click', function() {
+            editPost(content, editZone, editButton, saveButton);
+        })
+        saveButton.addEventListener('click', function() {
+            saveEditedPost(content, editZone, editButton, saveButton, post);
+        })
+        subDiv3.appendChild(editButton);
+        subDiv3.appendChild(saveButton);
+        postDiv.appendChild(subDiv3);
+    }
     return postDiv;
 }
 
@@ -152,7 +163,6 @@ export function generateUserProfile(user) {
 function generateFollowButton(user) {
     const button = document.createElement('button');
     button.id = 'profile-follow-button';
-    console.log('in generateFollowButton', user);
     if (!user.is_followed && !user.is_request_user && user.is_authenticated) {
         button.textContent = 'Follow';
     } else if (user.is_followed && !user.is_request_user && user.is_authenticated) {
@@ -161,4 +171,20 @@ function generateFollowButton(user) {
         button.style.display = 'none';
     };
     return button;
+}
+
+
+function generateSaveEditButton(content, zone, functionalitie) {
+    let editButton = document.createElement('button');
+    editButton.textContent = 'Edit';
+    let saveButton = document.createElement('button');
+    saveButton.textContent = 'Save';
+    saveButton.style.display = 'none';
+
+    if (functionalitie === 'edit') {
+        return editButton;
+    } else {
+        return saveButton;
+    }
+    
 }

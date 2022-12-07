@@ -116,7 +116,7 @@ function loadPosts(title, username = "") {
   .then(response => response.json())
   .then(response => {
     response.posts.forEach(post => {
-      postsContainer.appendChild(generateOnePost(post));
+      postsContainer.appendChild(generateOnePost(post, response.requested_by));
     })
     updatePagination(response);
   })
@@ -175,6 +175,7 @@ function updatePagination(data) {
 
 
 function getPostsPage(title, action) {
+  // Add or minus 1 to keep control of current page
   if (action === 'next') {
     pageNumber--;
     loadPage(title, pageNumber, postsPerPage);
@@ -182,4 +183,54 @@ function getPostsPage(title, action) {
     pageNumber++;
     loadPage(title, pageNumber, postsPerPage);
   }
+}
+
+
+export function editPost(paragraph, textarea, button1, button2) {
+  // Get content of original post and mask id
+  let content = paragraph.textContent;
+  paragraph.style.display = 'none';
+
+  // Load content in textarea and display it
+  textarea.textContent = content,
+  textarea.style.display = 'block';
+
+  // Display Save buton and mask edit button
+  button1.style.display = 'none';
+  button2.style.display = 'block';
+}
+
+
+export function saveEditedPost(paragraph, textarea, button1, button2, post) {
+  // Get content modified
+  let content = textarea.value;
+
+  // Pass it to db
+  fetch(`/posts/edited`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        // Get content of new post
+        content: content,
+        post_id: post.id,
+    }),
+    credentials: 'same-origin',
+    headers: {
+      "X-CSRFToken": getCookie("csrftoken")
+    }
+  })
+  .then( () => {
+    // Style back to origin
+    textarea.style.display = 'none';
+    paragraph.textContent = content;
+    textarea.textContent = '';
+    paragraph.style.display = 'block';
+  
+    button1.style.display = 'block';
+    button2.style.display = 'none';
+  })
+  // Catch the error if one occurs
+  .catch(error => {
+    console.log('Error:', error);
+  });
+
 }

@@ -219,3 +219,20 @@ def follow(request, username):
     }
 
     return JsonResponse(response, status=200)
+
+
+def edit_post(request):
+    data = json.loads(request.body)
+    post_id = data.get("post_id")
+    content = data.get("content")
+
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+
+    post.content = content
+    post.save()
+    
+    return HttpResponse(status=200)
+    
