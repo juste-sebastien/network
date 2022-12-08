@@ -3,20 +3,16 @@
 
 {% block body %}
     <h1 id="page-title"></h1>
-    <div id="new-post">
-               
-        <form class="mb-3" id="new-post-form" style="width: 95vw; margin:auto;">
-            {% csrf_token %}
-            <label class="form-label" for="new-post-content">New Post</label>
-            <textarea class="form-control" id="new-post-content" class="form-control m-1"></textarea>
-            {% if request.user.is_authenticated %} 
+    {% if request.user.is_authenticated %}
+        <div id="new-post">       
+            <form class="mb-3" id="new-post-form" style="width: 95vw; margin:auto;">
+                {% csrf_token %}
+                <label class="form-label" for="new-post-content">New Post</label>
+                <textarea class="form-control mb-2" id="new-post-content" class="form-control m-1"></textarea>
                 <input id="new-post-submit" type="submit" class="btn btn-primary" value="Post" />
-            {% else %}
-            <input id="new-post-submit" type="submit" class="btn btn-primary disabled" value="Post" disabled/>
-            {% endif %}
-        </form>
-        
-    </div>
+            </form>
+        </div>
+    {% endif %}
     <div class="card text-center" id="profile-container" style="display: none; width: 95vw; margin: auto;">
         <div class="card-header">
             <img class="card-img"id="profile-image" src="" style="width: 100px; margin: auto;"/>

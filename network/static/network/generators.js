@@ -95,7 +95,6 @@ export function generateUserProfile(user) {
     const profileFollowButton = generateFollowButton(user);
     profileFollowButton.addEventListener('click', () => {
         followUnfollow(user);
-        loadProfile(user.username);
         })
     profilePanel.appendChild(profileFollowButton);
 }

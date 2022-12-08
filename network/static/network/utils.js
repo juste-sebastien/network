@@ -26,15 +26,15 @@ export function convertTime(time) {
     var since = 0;
     if (time > 864 * Math.pow(10, 5)) {
         since = Math.round(time / (864 * Math.pow(10, 5)));
-        return `${since} days`;
+        return `${since} d`;
     } else if (time > 36 * Math.pow(10, 5)) {
         since = Math.round(time / (36 * Math.pow(10, 5)));
-        return `${since} hours`;
+        return `${since} h`;
     } else if (time > 6 * Math.pow(10, 4)) {
         since = Math.round(time / (6 * Math.pow(10, 4)));
-        return `${since} minutes`;
+        return `${since} min`;
     } else {
         since = Math.round(time / (1 * Math.pow(10, 3)));
-        return `${since} seconds`;
+        return `${since} sec`;
     }
 }

@@ -3,8 +3,14 @@ import { getCookie } from './utils.js';
 
 // Defining all variables
 const allPosts = document.querySelector('#link-all-posts');
-const linkFollow = document.querySelector('#link-follow');
-const submitPost = document.querySelector('#new-post-submit');
+var linkFollow = '';
+if (document.querySelector('#link-follow')) {
+  linkFollow = document.querySelector('#link-follow');
+}
+var submitPost = '';
+if (document.querySelector('#new-post-submit')) {
+  submitPost = document.querySelector('#new-post-submit');
+}
 const postContent = document.querySelector('#new-post-content');
 const body = document.querySelector('.body');
 const h1 = document.querySelector('#page-title');
@@ -15,7 +21,7 @@ const nextPageButton = document.querySelector('#navigate-page-next-button');
 const previousPageButton = document.querySelector('#navigate-page-previous-button');
 const navPageNumber = document.querySelector('#navigate-page-number');
 
-let pageNumber = 1;
+var pageNumber = 1;
 const postsPerPage = 10;
 
 
@@ -23,8 +29,12 @@ const postsPerPage = 10;
 document.addEventListener('DOMContentLoaded', function() {
     
     allPosts.addEventListener('click', () => loadPage('All Posts', ''));
-    linkFollow.addEventListener('click', () => loadPage('Followings'))
-    submitPost.addEventListener('click', sendPost);
+    if (linkFollow != '') {
+      linkFollow.addEventListener('click', () => loadPage('Followings'));
+    }
+    if (submitPost != '') {
+      submitPost.addEventListener('click', sendPost);
+    }
     nextPageButton.addEventListener('click', () => getPostsPage(h1.textContent, 'next'));
     previousPageButton.addEventListener('click', () => getPostsPage(h1.textContent, 'previous'));
 
@@ -69,7 +79,8 @@ export function loadPage(title, name) {
     profile.style.display = 'block';
     let nameUpper = name.charAt(0).toUpperCase() + name.slice(1)
     h1.textContent = `${nameUpper}'s ${title}`;
-    loadProfile(title, name);
+    loadProfile(name);
+    loadPosts(title, name);
   } else if (title === 'Followings') {
     h1.textContent = title;
     newPost.style.display = 'none';
@@ -127,12 +138,11 @@ function loadPosts(title, username = "") {
 }
 
 
-export function loadProfile(title, name) {
+export function loadProfile(name) {
   fetch(`profile/${name}`)
   .then(response => response.json())
   .then(user => {
-      generateUserProfile(user);
-      loadPosts(title, user.username);
+    generateUserProfile(user);
   })
   .catch(error => {
     console.log('Error: ', error);
@@ -153,7 +163,6 @@ export function followUnfollow(user) {
   })
   .then(response => response.json())
   .then(user => {
-    console.log('in followUnfollow', user);
     generateUserProfile(user);
   })
   .catch(error => {

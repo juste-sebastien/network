@@ -122,7 +122,7 @@ def get_posts(request):
             post_user = User.objects.get(id=post["user_id"])
             if request.user != None and is_in_relation(request_user, post_user):
                 post["username"] = post_user.username
-                post["user_profile_img"] = post_user.img_profile.path
+                post["user_profile_img"] = post_user.img_profile
                 post["since"] = (timezone.now() - post["timestamp"]).total_seconds() * 1000
                 post["is_liker"] = True if post["like"] !=0 and request_user in current_post.likers.all() else False
                 follows.append(post)
@@ -136,7 +136,7 @@ def get_posts(request):
             current_post = Post.objects.get(id=post["id"])
             post_user = User.objects.get(id=post["user_id"])
             post["username"] = post_user.username
-            post["user_profile_img"] = post_user.img_profile.path
+            post["user_profile_img"] = post_user.img_profile
             post["since"] = (timezone.now() - post["timestamp"]).total_seconds() * 1000
             post["is_liker"] = True if post["like"] !=0 and request_user in current_post.likers.all() else False
 
@@ -174,6 +174,7 @@ def profile_page(request, username):
 
     response = {
         'username' : user_profile.username,
+        'img_profile': user_profile.img_profile,
         'total_posts' : user_profile.total_posts,
         'following' : user_profile.total_followings,
         'total_followers' : user_profile.total_followers,
@@ -214,6 +215,7 @@ def follow(request, username):
 
     response = {
         'username' : author.username,
+        'img_profile': author.img_profile,
         'total_posts' : author.total_posts,
         'following' : author.total_followings,
         'total_followers' : author.total_followers,
@@ -227,6 +229,7 @@ def follow(request, username):
     return JsonResponse(response, status=200)
 
 
+@login_required
 def edit_post(request):
     # Transform request body in Python dict
     data = json.loads(request.body)
@@ -248,6 +251,7 @@ def edit_post(request):
     return HttpResponse(status=200)
     
 
+@login_required
 def like_post(request):
     # Transform request body in Python dict
     data = json.loads(request.body)

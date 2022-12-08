@@ -8,7 +8,7 @@ class User(AbstractUser):
     date_of_birth = models.DateField(blank=True, null=True)
     about = models.TextField(blank=True, null=True)
     country = CountryField(blank=True, null=True)
-    img_profile = models.ImageField(default="network/profile_img/default.png", blank=True)
+    img_profile = models.URLField(default="https://t4.ftcdn.net/jpg/00/64/67/63/240_F_64676383_LdbmhiNM6Ypzb3FM4PPuFP9rHe7ri8Ju.jpg", blank=True)
     total_followers = models.IntegerField(blank=True, default=0)
     total_followings = models.IntegerField(blank=True, default=0)
     total_posts = models.IntegerField(blank=True, default=0)
